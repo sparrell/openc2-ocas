@@ -21,6 +21,7 @@
   * [4.3 Playbook Simulator](#43-playbook-simulator)
   * [4.4 Implementation Template](#44-implementation-template)
 * [5. Organization of this software](#5-organization-of-this-software)
+  * [5.1 sim_handler](#51-sim_handler)
   * [5.1 ok_handler](#51-ok_handler)
   * [5.2 init_handler](#52-init_handler)
   * [5.3 status_handler](#53-status_handler)
@@ -80,13 +81,13 @@ version 1.4.0, available at
 
 ### 2.3 Collective Code Construction Contract (C4)
 
-C4 provides a standard process for contributing, evaluating and discussing improvements on software projects. 
+C4 provides a standard process for contributing, evaluating and discussing improvements on software projects.
 It defines specific technical requirements for projects
 like a style guide, unit tests, git and similar platforms.
 It also establishes different personas for projects,
 with clear and distinct duties.
-C4 specifies a process for documenting 
-and discussing issues including seeking consensus and clear descriptions, 
+C4 specifies a process for documenting
+and discussing issues including seeking consensus and clear descriptions,
 use of "pull requests" and systematic reviews.
 
 This C4 was adopted from <https://rfc.zeromq.org/spec:42/C4/> under GNU GPLv3.
@@ -95,8 +96,8 @@ Need to actually add the C4 to the repo. Need to edit ZeroMQ - Apache license in
 
 ### 2.4 Style Guide
 
-A standalong style guide needs to be established. 
-[Elvis](https://github.com/inaka/elvis) is used for verifying 
+A standalong style guide needs to be established.
+[Elvis](https://github.com/inaka/elvis) is used for verifying
 and for now the style guide is the rules in [elvis.config](elvis.config).
 
 ## 3. Getting it running
@@ -127,7 +128,7 @@ As part of the quality checks on merging, GitHub pull requests automagically run
 ### 3.4 Release
 
 not done yet.
-For now, you can 
+For now, you can
 
     $ rebar3 shell
 
@@ -135,37 +136,37 @@ to build and run from command line
 
 ## 4. Vision
 
-The vision is to have this code running on a cloud server, 
-with a protected interface, that could be used for interworking testing. 
+The vision is to have this code running on a cloud server,
+with a protected interface, that could be used for interworking testing.
 See TBD for the glue to do this.
 
 ### 4.1 Single-command Verification
 
-A primary purpose (and first use) of the simulator is to uncover bugaboos in the openC2 specification. 
-One such has already been uncovered (the mixed case issue). 
-The penC2 specification is an attempt to simplify and standardize the command and control of all aspects of security. 
-Alternative implementations, particularly if they can interoperate, help uncover discrepancies and different interpretations allowing the spec to be improved. 
+A primary purpose (and first use) of the simulator is to uncover bugaboos in the openC2 specification.
+One such has already been uncovered (the mixed case issue).
+The penC2 specification is an attempt to simplify and standardize the command and control of all aspects of security.
+Alternative implementations, particularly if they can interoperate, help uncover discrepancies and different interpretations allowing the spec to be improved.
 Having ocas and the python reference implementation interact will go a long way towards validating the OpenC2 specification.
 
-The first phase of software development will focus on getting 
+The first phase of software development will focus on getting
 an ocas generic consumer
-up and running and accepting a single command. 
+up and running and accepting a single command.
 The software is being architected to both allow for easily scaling to a full network simulation and for using as the base for either an orchestrator or an actuator.
-But the generic consumer only accepts a single command (ie does not have state information about the system being simulated) 
+But the generic consumer only accepts a single command (ie does not have state information about the system being simulated)
 and only verifies the command is 'valid from a language viewpoint'.
 
 ### 4.2 Single-command Orchestrator/Actuator Consumer Simulator
 
-The next phase of development (still future at this writing) will include state information for 
+The next phase of development (still future at this writing) will include state information for
 instantiating either an orchestrator-consumer (eg as seen from another orchestrator)
 or an actuator-consumer (eg as seen from an orchestor).
-The state information 'informs' the simulator as to the 'context' of the environment so it can respond appropriately. 
+The state information 'informs' the simulator as to the 'context' of the environment so it can respond appropriately.
 One use of this is still for specification validation for error conditions such as requesting resources that are not present.
 
 ### 4.3 Playbook Simulator
 
-Once the single-command simulator is fully functional, it will be extended to multi-command to allow playbook simulation of a full network. 
-This will involve retaining state information which will be then extended 
+Once the single-command simulator is fully functional, it will be extended to multi-command to allow playbook simulation of a full network.
+This will involve retaining state information which will be then extended
 to allow multiple orchestrators and the study of race conditions and temporal vulnerabilities.
 
 ### 4.4 Implementation Template
@@ -184,7 +185,7 @@ The directory structure is follows the erlang OTP convention. Of interest:
   * [lager](https://github.com/erlang-lager/lager) is used for logging
   * [shotgun](https://github.com/inaka/shotgun) is used just in testing as an http test client
 * `test/` contains tests for `ct` to execute. Test-driven development is being attempted (eg first write a test, have it fail, and then develop the code to get it to pass, iterate).
-* `apps/ocas/src/` contains the meat 
+* `apps/ocas/src/` contains the core  
   * ocas.app.src - OTP application resource file
   * ocas_sup.erl - OTP supervisor
   * ocas_app.erl - API for ocas
@@ -194,12 +195,17 @@ is started. This module calls `start_webserver()` which contains the ocas
 specific software including a set of compiled routes which map URLs to the
 handler callbacks to run:
 
-* `/status` will run `status_hander` callbacks 
+* `/status` will run `status_hander` callbacks
   * for admin to find status
 * `/ok` will run `status_ok_handler callbacks
   * keepalive that just returns ok when all is ok
+* `/sim` will run the sim_hanlder callbacks
+  * receives a commands to the simulator, validates it, and executes
 * `/openc2` will run `openc2_handler` callbacks
   * receives the OpenC2 JSON, validates it, and executes what is in the OpenC2 command in the simulator
+
+### 5.1 sim_handler
+This is a command to simulator (not an OpenC2 command) to allow those with administrative access to configure the simulator.
 
 ### 5.1 ok_handler
 
@@ -212,7 +218,7 @@ This is a command to simulator (not an OpenC2 command) to allow those with
 administrative access to initialize (or re-initialize) the simulator. For more
 information on initialization, please see (add link here).
 
-### 5.3 status_handler 
+### 5.3 status_handler
 
 This is a command to simulator (not an OpenC2 command) to allow those with
 administrative access to get status information about the simulator itself
@@ -223,74 +229,74 @@ maintains the high level state of the simulator.
 
 ### 5.4 openc2_handler
 
-This module is the heart of the simulator. 
-When the URL path is `/openc2` then the `openc2_handler` is used. 
-Right now, only the verbose version of JSON is accepted. 
-It may be that different url paths will be used for the 3 different versions 
-(eg `/openc2/verbose`, `/openc2/terse`, `/openc2/whatever`). 
+This module is the heart of the simulator.
+When the URL path is `/openc2` then the `openc2_handler` is used.
+Right now, only the verbose version of JSON is accepted.
+It may be that different url paths will be used for the 3 different versions
+(eg `/openc2/verbose`, `/openc2/terse`, `/openc2/whatever`).
 `openc2_handler` contains the following for its API:
 
 * rest_init/2 - to tell cowboy this is a REST API
 * allowed_methods/2 – to tell cowboy to only allow the POST method
-* content_types_accepted/2 – to tell cowboy that only JSON is allowed, and to pass control to handle_json/2 when json is posted on this url 
+* content_types_accepted/2 – to tell cowboy that only JSON is allowed, and to pass control to handle_json/2 when json is posted on this url
 * handle_json/2 (and it’s helper routines) :
   * verifies there is a body in the http request
   * decodes and verifies the json
   * spawns the necessary processes for action/target/actuator/modifier (more on this further down)
   * does the simulation
-  * sends the appropriate http response 
+  * sends the appropriate http response
 
-The OpenC2 language is in JSON and consists of 
-two mandatory top-level fields (action, target) 
-and two optional top-level fields (actuator, modifiers). 
-The nature of the Openc2 command set poses some interesting challenges 
-in how to organize the software 
-(see add ref to MulitMode talk on 29-Sep-2016 at OpenC2 face2face). 
-Ocas is organized taking advantage of erlang’s concurrency, small lightweight processes, and messaging. 
-This allows the action/target/actuator/modifier code 
-to remain independent of each other. 
+The OpenC2 language is in JSON and consists of
+two mandatory top-level fields (action, target)
+and two optional top-level fields (actuator, modifiers).
+The nature of the Openc2 command set poses some interesting challenges
+in how to organize the software
+(see add ref to MulitMode talk on 29-Sep-2016 at OpenC2 face2face).
+Ocas is organized taking advantage of erlang’s concurrency, small lightweight processes, and messaging.
+This allows the action/target/actuator/modifier code
+to remain independent of each other.
 For example, if a new actuator is added, it should not require changes to the actions software.
 
-This is accomplished by spinning up an erlang process to handle orchestrating that particular command 
+This is accomplished by spinning up an erlang process to handle orchestrating that particular command
 based on the action in that commmand.
 For example
-{action=deny, 
-target=network connection, 
+{action=deny,
+target=network connection,
 actuator=network firewall,
-and modifier=acknowledge} will spin up a deny_server 
-which will validate those other parameters 
+and modifier=acknowledge} will spin up a deny_server
+which will validate those other parameters
 (eg target=network connection is a valid target for deny command)
-spinning up other processes as needed for validation (eg target process) and for simulation 
+spinning up other processes as needed for validation (eg target process) and for simulation
 (the particular network connection instantiation).
 These processes interact via messages to accomplish the desired simulation result.
-This architecture allows separation of the functionality 
+This architecture allows separation of the functionality
 such that new targets can added without changing the action code.
 Similarly for new actuators.
 It also allows for the context and scope to be mimimized in the simulator to just what is needed.
 
-Although this may be overkill in these first phases of the project 
-(specification validation and one-time, single-command simulator); 
-it allows the same code to scale up for the full network simulation 
-including initializing the network to be simulated, playbook simulation, 
-multiple concurrent orchestrators 
-(eg looking for race conditions and time-dependent security vulnerabilities), 
+Although this may be overkill in these first phases of the project
+(specification validation and one-time, single-command simulator);
+it allows the same code to scale up for the full network simulation
+including initializing the network to be simulated, playbook simulation,
+multiple concurrent orchestrators
+(eg looking for race conditions and time-dependent security vulnerabilities),
 and red-teaming via simulation.
 
-The establishment of a separate erlang process for each entity 
-and each action allows the simulator to scale both the scope (processes) 
-and the context (messaging) of the network being simulated 
+The establishment of a separate erlang process for each entity
+and each action allows the simulator to scale both the scope (processes)
+and the context (messaging) of the network being simulated
 in addition to the modularizing the software that was mentioned earlier.
 
 ### 5.5 Actions
 
 The module `actions.erl` contains `spawn_action/3`
-which both verifies the request’s JSON action is valid, 
-and it spawns the process for that action. The spawned process 
-runs the function for that action in the action_servers directory 
+which both verifies the request’s JSON action is valid,
+and it spawns the process for that action. The spawned process
+runs the function for that action in the action_servers directory
 (eg deny in the JSON action field spawns the process running the module act_deny.erl.
 As of this report, skeleton code exists for some, but not all of the 35 actions defined in the OpenC2 specification.
 It verifies a valid action,
-but not target/actuator/modifiers that are semantically correct for that action. 
+but not target/actuator/modifiers that are semantically correct for that action.
 For each of the actions
 the processes are actually spun up (albeit they only do a simple keepalive).
 
@@ -306,14 +312,14 @@ Tests that pass show functioning code.
 Work to be done is shown thru tests that are incomplete, non-existent, or failing.
 See [dev_test_status.md](./dev_test_status.md) for current status from test viewpoint.
 
-Another way to look at development status is 
+Another way to look at development status is
 from the viewpoint of how much flesh is put on the architectural bones.
-See (put link here) for a sunny day walkthru of architecture 
+See (put link here) for a sunny day walkthru of architecture
 and (put link here) for status of what is done and what is still to do.
 
 ## 7. Specification Coverage
 
-Another way to consider status is how much of the specification is covered by what has so far been 
+Another way to consider status is how much of the specification is covered by what has so far been
 implemented. See [specstatus.md](docs/specstatus.md) for current status of this.
 
 ## 8. Examples
@@ -323,4 +329,3 @@ put stuff here
 ## 9. How to help
 
 Find a bug? or something missing? or something dumb? Want to complete more features? If yes to any of these then create an issue. Or ideally send a pull request with the changes you'd like.
-

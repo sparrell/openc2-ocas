@@ -27,6 +27,7 @@
 
 %% for test export all functions
 -export( [ post_oc2/3
+         , post_sim/3
          , create_openc2_atoms/0
          , command_atoms/0
          , action_atoms/0
@@ -62,8 +63,18 @@ read_file(Filename) ->
     {ok, Txt} = file:read_file(Filename),
     Txt.
 
-%% post openc2 command and get expected result
 post_oc2(JsonFileName, ResultsFileName, Config) ->
+  %% post to oc2 Url
+  Url = "/openc2",
+  post_url(Url, JsonFileName, ResultsFileName, Config).
+
+post_sim(JsonFileName, ResultsFileName, Config) ->
+  %% post to sim Url
+  Url = "/sim",
+  post_url(Url, JsonFileName, ResultsFileName, Config).
+
+%% post openc2 command and get expected result
+post_url(Url, JsonFileName, ResultsFileName, Config) ->
     %% read and validate json to send
     JsonTxt = read_json_file(JsonFileName, Config),
 
@@ -72,13 +83,14 @@ post_oc2(JsonFileName, ResultsFileName, Config) ->
 
     %% convert json to erlang terms
     ExpectedResults = jsx:decode(ExpectedResultsTxt, [return_maps]),
+    lager:info("helper_json:ExpectedResults: ~p", [ExpectedResults]),
 
     %% open connection to send post
     Conn = make_conn(),
 
     %% send post
     {ok, Response} = shotgun:post( Conn
-                                 , "/openc2"  % Url
+                                 , Url
                                  , [ { <<"content-type">>  % ReqHeaders
                                      , <<"application/json">>
                                      }
@@ -87,6 +99,7 @@ post_oc2(JsonFileName, ResultsFileName, Config) ->
                                  , #{}      % Options
                                  ),
     %% compare expected status to resonse status
+    lager:info("helper_json:Response: ~p", [Response]),
     check_status(ExpectedResults, Response),
 
     %% check headers
@@ -116,7 +129,10 @@ make_conn() ->
 %% check status of a response
 check_status(ExpectedResults, Response) ->
     ExpectedStatus = maps:get(<<"ExpectedStatus">>, ExpectedResults),
+    lager:info("helper_json:checkstatus:Response: ~p", [Response]),
+    lager:info("helper_json:checkstatus:ExpectedStatus: ~p", [ExpectedStatus]),
     ResponseStatus = maps:get(status_code, Response),
+    lager:info("helper_json:checkstatus:ResponseStatus: ~p", [ResponseStatus]),
     ExpectedStatus = ResponseStatus,
     ok.
 

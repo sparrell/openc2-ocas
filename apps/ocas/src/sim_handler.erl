@@ -1,9 +1,11 @@
 %%% @author Duncan Sparrell
-%%% @copyright (C) 2017, sFractal Consulting LLC
+%%% @copyright (C) 2019, sFractal Consulting LLC
 %%%
--module(init_handler).
+-module(sim_handler).
 -author("Duncan Sparrell").
 -license("Apache 2.0").
+-copyright("2019, sFractal Consulting, LLC").
+
 
 %%%-------------------------------------------------------------------
 %%% All rights reserved.
@@ -49,29 +51,37 @@
 -ignore_xref({content_types_accepted, 2}).
 -ignore_xref({handle_json, 2}).
 
+%% The commands to the simulator are openc2 commands to the /sim api
+%%    and the json is for the ocas simulator cap (custom actuator profile)
+%% The target will always be "sim"
+%% action/target_specifiers are:
+%%    query/status - return info about state of simulator
+%%    restart/[language | actuator | orchestrator] - reinitialize the simulator
+%%
+
 init( {tcp, http}, _Req, _Opts) ->
     {upgrade, protocol, cowboy_rest}.
 
 rest_init(Req, _Opts) ->
     {Method, Req1} = cowboy_req:method(Req),
     {URL, Req2} = cowboy_req:url(Req1),
-    lager:info("rest_init:~s ~s", [Method, URL]),
+    lager:info("sim:rest_init:~s ~s", [Method, URL]),
 
     %% initialize State with an empty pid map
     State = #{ pids => #{} },
     {ok, Req2, State}.
 
 allowed_methods(Req, State) ->
-    %%lager:info("got to allowed methods"),
+    lager:info("got to allowed methods"),
     {[<<"POST">>], Req, State}.
 
 content_types_accepted(Req, State) ->
-    %%lager:info("got to content_types"),
+    lager:info("got to content_types"),
     %% header has content =application/json/whatever
     { [{ { <<"application">>, <<"json">>, '*'} , handle_json}], Req, State}.
 
 handle_json(Req, State) ->
-    %%lager:info("got to handle_json"),
+    lager:info("got to handle_json"),
 
     %% check for case of no body
     HasBody = cowboy_req:has_body(Req),
@@ -80,6 +90,7 @@ handle_json(Req, State) ->
 %% handle case of whether body present or not
 body_check(false, Req, State) ->
     %% no body so bad request
+    lager:info("got to body_check/false"),
     State2 = maps:put(has_http_body, false, State),
     {ok, Req2} = cowboy_req:reply(400, [], <<"Missing body.">>, Req),
     %% return (don't move on since request was bad)
@@ -115,29 +126,90 @@ is_body_json(true, Req, State) ->
     lager:info("handle_json Json: InputMap ~p", [JsonMap] ),
     State3 = maps:put(json_map, JsonMap, State2),
 
-    %% check for simulator_type
-    SimulatorTypeExists = maps:is_key( <<"simulator_type">>, JsonMap ),
-    %% tail recurse on to check simulator type
-    has_sim( SimulatorTypeExists, JsonMap, Req, State3 ).
+    %% check for action
+    ActionExists = maps:is_key( <<"action">>, JsonMap ),
+    %% tail recurse on to check has action
+    has_action(ActionExists, JsonMap, Req, State3).
 
-has_sim(false, _JsonMap, Req, State ) ->
-    %% Json doesn't have simulator type so abort ie bad request
-    State2 = maps:put(has_sim, false, State),
-    {ok, Req2} = cowboy_req:reply(400, [], <<"Missing simulator type">>, Req),
+  has_action(false, _JsonMap, Req, State) ->
+    %% action not present so invalid command
+    State2 = maps:put(has_action, false, State),
+    {ok, Req2} = cowboy_req:reply(400, [], <<"Missing action">>, Req),
     %% return (don't move on since request was bad)
     {ok, Req2, State2};
 
-has_sim(true, JsonMap, Req, State ) ->
-    %% json has simulator type so move on
-    State2 = maps:put(has_sim, true, State),
+  has_action(true, JsonMap, Req, State ) ->
+    %% has action, so validate action is validate
+    State2 = maps:put(has_action, true, State),
 
-    %% get the simulator type
-    %%   already know it's there from hitting this function head
-    SimTypeBin = maps:get( <<"simulator_type">>, JsonMap ),
-    %%lager:info("SimType bintext: ~p", [SimTypeBin] ),
+    %% get the action
+    ActionBin = maps:get( <<"action">>, JsonMap ),
+    lager:info("Action bintext: ~p", [ActionBin] ),
 
-    %% react to which type of simulator
-    init_sim(SimTypeBin, JsonMap, Req, State2).
+    %% tail recurse on to which action
+    process_action(ActionBin, JsonMap, Req, State2).
+
+  process_action(<<"query">>, _JsonMap, Req, State) ->
+    %% query action
+    lager:debug("ToDo: more simulator query options"),
+
+    EnvStatus = oc_env:status(),
+    lager:info("Status ~p", [EnvStatus]),
+    ReplyBody = jsx:encode(EnvStatus),
+
+
+    Headers = [ {<<"content-type">>, <<"application/json">>} ],
+    {ok, Req2} = cowboy_req:reply(200, Headers, ReplyBody, Req),
+    %% stopping this request's process since this request now finished
+    {halt, Req2, State};
+
+  process_action(<<"restart">>, JsonMap, Req, State) ->
+    %% restart action
+    %% validate target = sim,
+    %%          target_specifiers = language | actuator | orchestrator
+    TargetExists = maps:is_key( <<"target">>, JsonMap ),
+    %% tail recurse on to check has action
+    has_target(TargetExists, JsonMap, Req, State);
+
+  process_action(Action, _JsonMap, Req, State) ->
+    %% unknown action
+    State2 = maps:put(bad_action, Action, State),
+    {ok, Req2} = cowboy_req:reply(400, [], <<"Bad action">>, Req),
+    %% return (don't move on since request was bad)
+    {ok, Req2, State2}.
+
+has_target(false, _JsonMap, Req, State) ->
+    %% no target so fail
+    State2 = maps:put(has_target, false, State),
+    {ok, Req2} = cowboy_req:reply(400, [], <<"Missing target">>, Req),
+    %% return (don't move on since request was bad)
+    {ok, Req2, State2};
+
+has_target(true, JsonMap, Req, State) ->
+    %% has target, validate it's "sim"
+    TargetDict = maps:get( <<"target">>, JsonMap ),
+    lager:info("Target bintext: ~p", [TargetDict] ),
+    %% target should be a dict with key "sim"
+    SimExists = maps:is_key( <<"sim">>, TargetDict ),
+    %% tail recurse on to check has action
+    has_sim(SimExists, TargetDict, JsonMap, Req, State).
+
+has_sim(false, _TargetDict, _JsonMap, Req, State) ->
+  %% bad Input
+  State2 = maps:put(has_sim, false, State),
+  {ok, Req2} = cowboy_req:reply(400, [], <<"Target should be sim">>, Req),
+  %% return (don't move on since request was bad)
+  {ok, Req2, State2};
+
+has_sim(true, TargetDict, JsonMap, Req, State) ->
+  %% has target=sim, should have language | actuator | orchestrator
+  TargetSpecList = maps:get( <<"sim">>, TargetDict ),
+  %% this is a list that should only contail one item
+  lager:info("has_sim needs to handle error conditions" ),
+  [SimType | _Rest ] = TargetSpecList,
+
+  %% tail recurse on to type of simulator
+  init_sim(SimType, JsonMap, Req, State).
 
 init_sim(<<"language">>, JsonMap, Req, State) ->
     %% simulator type = language
@@ -186,7 +258,7 @@ init_sim(<<"language">>, JsonMap, Req, State) ->
             {halt, Req2, State3};
 
         Started when is_pid(Started) ->
-            lager:info("env was started prior"),
+            lager:info("init_sim/language - env was started prior"),
             %% already started - so reinitialize it as language simulator
             %% if needed get old state with reset count
             RestartCount = restart_count(Restart),
@@ -196,6 +268,7 @@ init_sim(<<"language">>, JsonMap, Req, State) ->
             SvrMap = maps:get(svr_map, oc_env:status() ),
             EnvSvrMap = maps:remove(oc_env, SvrMap),
             EnvSvrList = maps:keys(EnvSvrMap),
+            lager:info("init_sim:EnvSvrList ~p", [EnvSvrList]),
 
             %% stop all servers
             oc_svr_stop:stop(EnvSvrList),
@@ -313,4 +386,3 @@ begin_state(language, RestartCount, SvrMap) ->
              , svr_map => SvrMap
              },
     State.
-

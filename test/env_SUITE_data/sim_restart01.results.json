@@ -1,0 +1,13 @@
+{
+    "ExpectedStatus" : 200,
+    "ExpectedJsonKeys" : [ "init_state"
+                         , "restart_count"
+                         , "simulator_type"
+                         , "start_time"
+                         , "svr_map"
+                         , "this_machine"
+                         ],
+    "ExpectedJsonPairs" : { "restart_count"  : 1
+                          , "simulator_type" : "language"
+                          }
+}

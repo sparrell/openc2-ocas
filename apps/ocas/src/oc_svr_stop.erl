@@ -65,10 +65,6 @@ stop( [ act_allow |  NewSvrList ] ) ->
     act_allow:stop(),
     stop(NewSvrList);
 
-stop( [ act_augment |  NewSvrList ] ) ->
-    act_augment:stop(),
-    stop(NewSvrList);
-
 stop( [ act_cancel |  NewSvrList ] ) ->
     act_cancel:stop(),
     stop(NewSvrList);
@@ -81,24 +77,20 @@ stop( [ act_copy |  NewSvrList ] ) ->
     act_copy:stop(),
     stop(NewSvrList);
 
-stop( [ act_delay |  NewSvrList ] ) ->
-    act_delay:stop(),
+stop( [ act_create |  NewSvrList ] ) ->
+  act_create:stop(),
+  stop(NewSvrList);
+
+stop( [ act_delete |  NewSvrList ] ) ->
+    act_delete:stop(),
     stop(NewSvrList);
 
 stop( [ act_deny |  NewSvrList ] ) ->
     act_deny:stop(),
     stop(NewSvrList);
 
-stop( [ act_delete |  NewSvrList ] ) ->
-    act_delete:stop(),
-    stop(NewSvrList);
-
 stop( [ act_detonate |  NewSvrList ] ) ->
     act_detonate:stop(),
-    stop(NewSvrList);
-
-stop( [ act_distill |  NewSvrList ] ) ->
-    act_distill:stop(),
     stop(NewSvrList);
 
 stop( [ act_investigate |  NewSvrList ] ) ->
@@ -107,22 +99,6 @@ stop( [ act_investigate |  NewSvrList ] ) ->
 
 stop( [ act_locate |  NewSvrList ] ) ->
     act_locate:stop(),
-    stop(NewSvrList);
-
-stop( [ act_mitigate |  NewSvrList ] ) ->
-    act_mitigate:stop(),
-    stop(NewSvrList);
-
-stop( [ act_move |  NewSvrList ] ) ->
-    act_move:stop(),
-    stop(NewSvrList);
-
-stop( [ act_notify |  NewSvrList ] ) ->
-    act_notify:stop(),
-    stop(NewSvrList);
-
-stop( [ act_pause |  NewSvrList ] ) ->
-    act_pause:stop(),
     stop(NewSvrList);
 
 stop( [ act_query |  NewSvrList ] ) ->
@@ -137,24 +113,12 @@ stop( [ act_remediate |  NewSvrList ] ) ->
     act_remediate:stop(),
     stop(NewSvrList);
 
-stop( [ act_report |  NewSvrList ] ) ->
-    act_report:stop(),
-    stop(NewSvrList);
-
 stop( [ act_restart |  NewSvrList ] ) ->
     act_restart:stop(),
     stop(NewSvrList);
 
 stop( [ act_restore |  NewSvrList ] ) ->
     act_restore:stop(),
-    stop(NewSvrList);
-
-stop( [ act_resume |  NewSvrList ] ) ->
-    act_resume:stop(),
-    stop(NewSvrList);
-
-stop( [ act_save | NewSvrList ] ) ->
-    act_save:stop(),
     stop(NewSvrList);
 
 stop( [ act_scan |  NewSvrList ] ) ->
@@ -165,10 +129,6 @@ stop( [ act_set |  NewSvrList ] ) ->
     act_set:stop(),
     stop(NewSvrList);
 
-stop( [ act_snapshot |  NewSvrList ] ) ->
-    act_snapshot:stop(),
-    stop(NewSvrList);
-
 stop( [ act_start |  NewSvrList ] ) ->
     act_start:stop(),
     stop(NewSvrList);
@@ -177,16 +137,8 @@ stop( [ act_stop |  NewSvrList ] ) ->
     act_stop:stop(),
     stop(NewSvrList);
 
-stop( [ act_substitute |  NewSvrList ] ) ->
-    act_substitute:stop(),
-    stop(NewSvrList);
-
 stop( [ act_sync |  NewSvrList ] ) ->
     act_sync:stop(),
-    stop(NewSvrList);
-
-stop( [ act_throttle |  NewSvrList ] ) ->
-    act_throttle:stop(),
     stop(NewSvrList);
 
 stop( [ act_update |  NewSvrList ] ) ->
@@ -263,4 +215,3 @@ stop( [ Svr |  NewSvrList ] ) ->
     lager:error("or should this be supervison tree"),
     die = Svr,
     stop(NewSvrList).
-

@@ -1,0 +1,6 @@
+{
+  "action": "query",
+  "target": {
+    "sim": [ "status" ]
+     }
+}

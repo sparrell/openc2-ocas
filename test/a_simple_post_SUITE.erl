@@ -32,7 +32,6 @@
          , suite/0
          , init_per_suite/1
          , end_per_suite/1
-         , test_get_ok/1
          , test_post/1
          , test_bad_method/1
          , test_post_missing_body/1
@@ -56,8 +55,7 @@
 
 %% tests to run
 all() ->
-    [ test_get_ok
-    , test_bad_method
+    [ test_bad_method
     , test_post_missing_body
     , test_unsupported_media_type
     , test_bad_json
@@ -91,40 +89,6 @@ init_per_suite(Config) ->
 
 end_per_suite(Config) ->
     Config.
-
-test_get_ok(_Config) ->
-
-    %% send request, get response, and deciper text response
-    send_recieve( [ {<<"content-type">>, <<"application/text">>}
-                  , {<<"accept">>, <<"text/plain">>}
-                  ]
-                , #{}      %% Options
-                , "/ok"    %% Url
-                , 200      %% ExpectedStatus
-                , <<"ok">> %% ExpectedBody
-                ),
-
-    %% send request, get response, and deciper html response
-    send_recieve( [ {<<"content-type">>, <<"application/text">>}
-                  , {<<"accept">>, <<"text/html">>}
-                  ]
-                , #{}      %% Options
-                , "/ok"    %% Url
-                , 200      %% ExpectedStatus
-                , <<"<html><body>ok</body></html>">> %% ExpectedBody
-                ),
-
-    %% send request, get response, and deciper json response
-    send_recieve( [ {<<"content-type">>, <<"application/text">>}
-                  , {<<"accept">>, <<"application/json">>}
-                  ]
-                , #{}      %% Options
-                , "/ok"    %% Url
-                , 200      %% ExpectedStatus
-                , <<"{ \"status : ok\" }">> %% ExpectedBody
-                ),
-
-    ok.
 
 test_post(_Config) ->
     MyPort = application:get_env(ocas, port, 8080),

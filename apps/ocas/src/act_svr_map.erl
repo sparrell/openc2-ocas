@@ -49,6 +49,7 @@ action_map() ->
                  , <<"cancel">> => act_cancel
                  , <<"contain">> => act_contain
                  , <<"copy">> => act_copy
+                 , <<"create">> => act_create
                  , <<"delete">> => act_delete
                  , <<"deny">> => act_deny
                  , <<"detonate">> => act_detonate

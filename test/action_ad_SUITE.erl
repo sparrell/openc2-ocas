@@ -34,6 +34,7 @@
         , test_cancel/1
         , test_contain/1
         , test_copy/1
+        , test_create/1
         , test_delete/1
         , test_demense/1
         , test_deny/1
@@ -53,6 +54,8 @@ all() ->
     , test_contain
     , test_copy
     , test_copy
+    , test_create
+    , test_create
     , test_delete
     , test_delete
     , test_demense
@@ -123,6 +126,14 @@ test_copy(Config) ->
     %% send command and compare expected results
     helper_json:post_oc2( "copy01.json"
                         , "copy01.results.json"
+                        , Config
+                        ),
+    ok.
+
+test_create(Config) ->
+    %% send command and compare expected results
+    helper_json:post_oc2( "create01.json"
+                        , "create01.results.json"
                         , Config
                         ),
     ok.

@@ -1,5 +1,5 @@
 %%%-------------------------------------------------------------------
-%%% Copyright (c) 2017, sFractal Consulting, LLC
+%%% Copyright (c) 2019, sFractal Consulting, LLC
 
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 
 -module(ocas_app).
 -author("Duncan Sparrell").
--copyright("2016, sFractal Consulting, LLC").
+-copyright("2019, sFractal Consulting, LLC").
 -license(apache2).
 
 -behaviour(application).
@@ -94,10 +94,8 @@ start_webserver() ->
       {
         '_'  %virtual hostname (any host name)
       , [
-          {"/status", status_handler, []}
-        , {"/ok", status_ok_handler, []}  % returns ok if service working
+          {"/sim", sim_handler, []}      % commands to simulator itself
         , {"/openc2", openc2_handler, []}    % handles the meat of openc2
-        , {"/init", init_handler, []}    % handles starting/restarting the sim
         ]
       }
     ],
@@ -113,4 +111,3 @@ start_webserver() ->
 
   %% return
   self().
-

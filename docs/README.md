@@ -22,12 +22,9 @@
   * [4.4 Implementation Template](#44-implementation-template)
 * [5. Organization of this software](#5-organization-of-this-software)
   * [5.1 sim_handler](#51-sim_handler)
-  * [5.1 ok_handler](#51-ok_handler)
-  * [5.2 init_handler](#52-init_handler)
-  * [5.3 status_handler](#53-status_handler)
-  * [5.4 openc2_handler](#54-openc2_handler)
-  * [5.5 Actions](#55-actions)
-  * [5.6 More on software design](#56-more-on-software-design)
+  * [5.2 openc2_handler](#54-openc2_handler)
+  * [5.3 Actions](#55-actions)
+  * [5.4 More on software design](#56-more-on-software-design)
 * [6. Development Status](#6-development-status)
 * [7. Specification Coverage](#7-specification-coverage)
 * [8. Examples](#8-examples)
@@ -195,10 +192,6 @@ is started. This module calls `start_webserver()` which contains the ocas
 specific software including a set of compiled routes which map URLs to the
 handler callbacks to run:
 
-* `/status` will run `status_hander` callbacks
-  * for admin to find status
-* `/ok` will run `status_ok_handler callbacks
-  * keepalive that just returns ok when all is ok
 * `/sim` will run the sim_hanlder callbacks
   * receives a commands to the simulator, validates it, and executes
 * `/openc2` will run `openc2_handler` callbacks
@@ -207,27 +200,7 @@ handler callbacks to run:
 ### 5.1 sim_handler
 This is a command to simulator (not an OpenC2 command) to allow those with administrative access to configure the simulator.
 
-### 5.1 ok_handler
-
-This is a command to simulator (not an OpenC2 command) to allow those with administrative access to validate simulator is running.
-This api returns a simple “ok” in either text, html, or JSON. This is to serve as a keepalive if one is needed.
-
-### 5.2 init_handler
-
-This is a command to simulator (not an OpenC2 command) to allow those with
-administrative access to initialize (or re-initialize) the simulator. For more
-information on initialization, please see (add link here).
-
-### 5.3 status_handler
-
-This is a command to simulator (not an OpenC2 command) to allow those with
-administrative access to get status information about the simulator itself
-(as opposed to about the network being simulated which would use OpenC2
-commands). At the current point this api takes no parameters and returns the
-JSON for the state of the env server (if running). The env server is what
-maintains the high level state of the simulator.
-
-### 5.4 openc2_handler
+### 5.2 openc2_handler
 
 This module is the heart of the simulator.
 When the URL path is `/openc2` then the `openc2_handler` is used.
@@ -287,7 +260,7 @@ and each action allows the simulator to scale both the scope (processes)
 and the context (messaging) of the network being simulated
 in addition to the modularizing the software that was mentioned earlier.
 
-### 5.5 Actions
+### 5.3 Actions
 
 The module `actions.erl` contains `spawn_action/3`
 which both verifies the request’s JSON action is valid,
@@ -300,7 +273,7 @@ but not target/actuator/modifiers that are semantically correct for that action.
 For each of the actions
 the processes are actually spun up (albeit they only do a simple keepalive).
 
-### 5.6 More on software design
+### 5.4 More on software design
 
 See [README.md in apps/ocas/src](../apps/ocas/src/README.md) for more on the software design
 including a sunny day walk thru the modules/functions.
